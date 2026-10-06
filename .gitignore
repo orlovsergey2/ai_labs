@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Виртуальные окружения
+venv/
+.venv/
+env/
+ENV/
+
+# PyCharm / IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Секреты и переменные окружения
+.env
+.env.*
+!.env.example
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Логи и выходные данные
+*.log
+output/
+logs/
+
+# LLM модели и большие файлы
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+checkpoints/
+models/
+data/
