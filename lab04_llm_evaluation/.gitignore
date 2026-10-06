@@ -1,0 +1,11 @@
+.env
+.env.*
+venv/
+.venv/
+__pycache__/
+*.pyc
+.idea/
+*.iml
+results_model_*.csv
+summary.csv
+judge_scores.csv

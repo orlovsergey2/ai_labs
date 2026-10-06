@@ -7,42 +7,37 @@
     - Case описывает один тестовый сценарий;
     - Recorder накапливает и сохраняет результаты.
 
-Скрипт последовательно выполняет пять серий эксперимента над одной
-моделью и сохраняет журнал в CSV и JSON.
+Подключение к LLM — через общий модуль llm_client (читает .env).
 """
 
 from __future__ import annotations
 
 import csv
 import json
-import os
 import statistics
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
-from dotenv import load_dotenv
-from openai import OpenAI
+# --- Единая точка подключения ---
+from llm_client import client as llm_client, MODEL, ENDPOINT, CANDIDATES
 
 
 # ---------------------------------------------------------------------------
-# Конфигурация окружения
+# Конфигурация эксперимента
 # ---------------------------------------------------------------------------
 
 PROJECT_DIR = Path(__file__).resolve().parent
-load_dotenv(PROJECT_DIR / ".env")
-
-ENDPOINT = os.getenv("LLM_ENDPOINT", "http://localhost:1234/v1")
-TOKEN = os.getenv("LLM_TOKEN", "lm-studio")
-DEFAULT_MODEL = os.getenv("PRIMARY_MODEL") or next(
-    (m.strip() for m in (os.getenv("LLM_CANDIDATES") or "").split(",") if m.strip()),
-    "qwen/qwen3-4b-2507",
-)
-
 OUTPUT_DIR = PROJECT_DIR / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+# Основная модель берётся из llm_client (первая в LLM_CANDIDATES)
+DEFAULT_MODEL = MODEL
+
+# Резервные модели — остальные из списка (если понадобится сравнение)
+FALLBACK_MODELS = CANDIDATES[1:]
 
 NEUTRAL_SYSTEM = "Отвечай точно и по существу на русском языке."
 
@@ -126,11 +121,14 @@ class Recorder:
 # ---------------------------------------------------------------------------
 
 class ModelClient:
-    """Обёртка над OpenAI SDK: один вызов — один Trial."""
+    """
+    Обёртка над общим llm_client: один вызов — один Trial.
+    Использует уже готовый OpenAI-клиент из llm_client, не создаёт новый.
+    """
 
     def __init__(self, model: str):
         self.model = model
-        self._client = OpenAI(api_key=TOKEN, base_url=ENDPOINT)
+        self._client = llm_client          # <-- общий клиент из llm_client
         self._unsupported: set[str] = set()
 
     def call(self, case: Case, attempt: int = 1) -> Trial:
@@ -153,7 +151,6 @@ class ModelClient:
 
         payload: dict[str, Any] = {"model": self.model, "messages": messages}
 
-        # Условное включение параметров: неподдерживаемые не передаём.
         if case.temperature is not None and "temperature" not in self._unsupported:
             payload["temperature"] = case.temperature
         if case.max_tokens is not None and "max_tokens" not in self._unsupported:
@@ -172,7 +169,6 @@ class ModelClient:
                 trial.total_tokens = usage.total_tokens
         except Exception as exc:
             message = str(exc).lower()
-            # Если провайдер отверг конкретный параметр — фиксируем и повторяем.
             for param in ("temperature", "max_tokens"):
                 if param in message and param not in self._unsupported:
                     self._unsupported.add(param)
@@ -194,7 +190,7 @@ class ModelClient:
 
 
 # ---------------------------------------------------------------------------
-# Серии эксперимента
+# Серии эксперимента (без изменений)
 # ---------------------------------------------------------------------------
 
 STAGE1_CASES = [
@@ -336,7 +332,7 @@ def run_stage5(client: ModelClient, recorder: Recorder) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Печать и сводки
+# Печать и сводки (без изменений)
 # ---------------------------------------------------------------------------
 
 def _print_trial(trial: Trial) -> None:
@@ -394,8 +390,10 @@ def summarize_all(recorder: Recorder) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    print(f"Модель:  {DEFAULT_MODEL}")
-    print(f"Endpoint:{ENDPOINT}")
+    print(f"Модель:   {DEFAULT_MODEL}")
+    print(f"Endpoint: {ENDPOINT}")
+    if FALLBACK_MODELS:
+        print(f"Резерв:   {FALLBACK_MODELS}")
 
     client = ModelClient(DEFAULT_MODEL)
     recorder = Recorder()

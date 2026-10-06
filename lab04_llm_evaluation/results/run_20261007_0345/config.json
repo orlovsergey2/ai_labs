@@ -1,0 +1,19 @@
+{
+  "tag": "run_20261007_0345",
+  "date": "2026-10-07T03:46:00.937893",
+  "endpoint": "http://localhost:1234/v1",
+  "model": "google/gemma-3-4b",
+  "candidates": [
+    "google/gemma-3-4b"
+  ],
+  "model_a": {
+    "prompt": "prompt_simple.txt",
+    "temperature": 0.7
+  },
+  "model_b": {
+    "prompt": "prompt_json.txt",
+    "temperature": 0.2
+  },
+  "tests": "tests.csv",
+  "n_tests": 30
+}
