@@ -7,5 +7,5 @@ __pycache__/
 *.pyc
 .idea/
 *.iml
-results.csv
+
 output/
