@@ -1,0 +1,20 @@
+{
+  "qwen3-4b-instruct-2507": {
+    "total": 10,
+    "ok": 10,
+    "errors": 0,
+    "avg_latency": 19.817,
+    "min_latency": 4.423,
+    "max_latency": 52.468,
+    "avg_answer_len": 637.2
+  },
+  "google/gemma-3-4b": {
+    "total": 10,
+    "ok": 10,
+    "errors": 0,
+    "avg_latency": 10.872,
+    "min_latency": 2.001,
+    "max_latency": 18.876,
+    "avg_answer_len": 476.2
+  }
+}
